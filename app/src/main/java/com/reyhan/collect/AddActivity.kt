@@ -3,6 +3,7 @@ package com.reyhan.collect
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +18,7 @@ class AddActivity : AppCompatActivity() {
     private lateinit var txtInputAlamat: EditText
     private lateinit var txtInputOutstanding: EditText
     private lateinit var btnSendData: Button
+    private lateinit var txtToolbar: TextView
 
     private val viewModel: CollectionViewModel by viewModels()
     private var itemId: Int? = null // Variable to hold item ID for editing
@@ -26,6 +28,7 @@ class AddActivity : AppCompatActivity() {
         txtInputNama = findViewById(R.id.txtNama)
         txtInputAlamat = findViewById(R.id.txtAlamat)
         txtInputOutstanding = findViewById(R.id.txtOutstanding)
+        txtToolbar = findViewById(R.id.txtToolbar)
         btnSendData = findViewById(R.id.btnKirimData)
 
         // Set click listener to handle data submission
@@ -86,6 +89,7 @@ class AddActivity : AppCompatActivity() {
             txtInputAlamat.setText(intent.getStringExtra("ITEM_ADDRESS"))
             txtInputOutstanding.setText(intent.getStringExtra("ITEM_OUTSTANDING"))
             btnSendData.text = "Update" // Change button text to indicate updating
+            txtToolbar.text = "Update Data" // Update toolbar title
         }
     }
 }

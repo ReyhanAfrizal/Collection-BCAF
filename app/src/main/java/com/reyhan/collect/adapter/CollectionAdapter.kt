@@ -36,7 +36,8 @@ class CollectionAdapter(
         if (data != null) {
             holder.txtNama.text = data.name ?: "N/A" // Use a default value if name is null
             holder.txtAlamat.text = data.address ?: "N/A" // Use a default value if address is null
-            holder.txtOutstanding.text = data.outstanding ?: "0" // Use a default value if outstanding is null
+
+            holder.txtOutstanding.text = "Rp. ${data.outstanding ?: "0"}"// Use a default value if outstanding is null
 
             // Set click listener for delete button
             holder.btnHapus.setOnClickListener {

@@ -92,14 +92,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun deleteCollect(item: CollectItem) {
-        val idString = item.id?.toString() ?: run {
-            //showToast("Invalid item ID")
-            return // Exit the function if ID is null
-        }
-
-        val rbid = idString.toRequestBody("text/plain".toMediaTypeOrNull())
-        viewModel.deleteCollect(rbid)
+    private fun deleteCollect(item: CollectItem?) {
+        val deleteID = item?.id
+        val id = deleteID.toString().trim()
+        val rbidx = id.toRequestBody("text/plain".toMediaTypeOrNull())
+        viewModel.deleteCollect(rbidx)
     }
 
     private fun editCollect(item: CollectItem?) {

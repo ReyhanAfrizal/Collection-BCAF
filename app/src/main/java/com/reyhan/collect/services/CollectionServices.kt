@@ -24,8 +24,10 @@ interface CollectionServices {
     fun getAllCollect(): Call<ResponseCollection>
 
     @Multipart
-    @POST("collect/delete/") // Use DELETE for deleting
-    fun deleteCollect(@Path("id") id: RequestBody): Call<ResponseServices>
+    @POST("collect/delete")
+    fun deleteCollect(
+        @Part("id") id: RequestBody
+    ): Call<ResponseServices>
 
     @Multipart
     @POST("collect/update")
