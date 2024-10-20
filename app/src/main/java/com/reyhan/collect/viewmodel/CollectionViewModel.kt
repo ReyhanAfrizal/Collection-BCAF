@@ -17,6 +17,7 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
     private val _post = MutableLiveData<ResponseServices?>()
     private val _getDataDiri = MutableLiveData<ResponseCollection?>()
 
+    // Expose LiveData to the UI
     val post: LiveData<ResponseServices?>
         get() = _post
 
@@ -24,9 +25,11 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
         get() = _getDataDiri
 
     init {
+        // Load initial data
         getDataDiri()
     }
 
+    // Function to post new data
     fun postDataDiri(name: RequestBody, address: RequestBody, outstanding: RequestBody) {
         NetworkConfig().getServiceCollection().addCollect(name, address, outstanding).enqueue(object :
             Callback<ResponseServices> {
@@ -35,49 +38,56 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
                     _post.postValue(response.body())
                     getDataDiri() // Refresh the list after posting
                 } else {
-                    Toast.makeText(getApplication(), "Failed to upload data", Toast.LENGTH_SHORT).show()
+                    showToast("Failed to upload data")
                 }
             }
 
             override fun onFailure(call: Call<ResponseServices>, t: Throwable) {
-                Toast.makeText(getApplication(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                showToast("Error: ${t.message}")
             }
         })
     }
 
+    // Function to fetch data
     fun getDataDiri() {
         NetworkConfig().getServiceCollection().getAllCollect()
             .enqueue(object : Callback<ResponseCollection> {
                 override fun onResponse(call: Call<ResponseCollection>, response: Response<ResponseCollection>) {
-                    _getDataDiri.postValue(response.body())
+                    if (response.isSuccessful) {
+                        _getDataDiri.postValue(response.body())
+                    } else {
+                        showToast("Failed to fetch data")
+                    }
                 }
 
                 override fun onFailure(call: Call<ResponseCollection>, t: Throwable) {
-                    Toast.makeText(getApplication(), "Failed to fetch data: ${t.message}", Toast.LENGTH_SHORT).show()
+                    showToast("Failed to fetch data: ${t.message}")
                 }
             })
     }
 
+    // Function to delete an item
     fun deleteCollect(id: String?) {
         id?.let {
             NetworkConfig().getServiceCollection().deleteCollect(it)
                 .enqueue(object : Callback<ResponseServices> {
                     override fun onResponse(call: Call<ResponseServices>, response: Response<ResponseServices>) {
                         if (response.isSuccessful) {
-                            Toast.makeText(getApplication(), "Item deleted successfully", Toast.LENGTH_SHORT).show()
+                            showToast("Item deleted successfully")
                             getDataDiri() // Refresh the list after deletion
                         } else {
-                            Toast.makeText(getApplication(), "Failed to delete item", Toast.LENGTH_SHORT).show()
+                            showToast("Failed to delete item")
                         }
                     }
 
                     override fun onFailure(call: Call<ResponseServices>, t: Throwable) {
-                        Toast.makeText(getApplication(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                        showToast("Error: ${t.message}")
                     }
                 })
         }
     }
 
+    // Function to update an item
     fun updateCollect(id: String, name: RequestBody, address: RequestBody, outstanding: RequestBody) {
         NetworkConfig().getServiceCollection().updateCollect(id, name, address, outstanding).enqueue(object :
             Callback<ResponseServices> {
@@ -86,13 +96,18 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
                     _post.postValue(response.body())
                     getDataDiri() // Refresh the list after updating
                 } else {
-                    Toast.makeText(getApplication(), "Failed to update item", Toast.LENGTH_SHORT).show()
+                    showToast("Failed to update item")
                 }
             }
 
             override fun onFailure(call: Call<ResponseServices>, t: Throwable) {
-                Toast.makeText(getApplication(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                showToast("Error: ${t.message}")
             }
         })
+    }
+
+    // Helper function to show Toast messages
+    private fun showToast(message: String) {
+        Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT).show()
     }
 }

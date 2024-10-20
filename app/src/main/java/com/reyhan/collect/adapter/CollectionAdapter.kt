@@ -22,7 +22,7 @@ class CollectionAdapter(
         var txtAlamat: TextView = itemView.findViewById(R.id.txtAlamatItem)
         var txtOutstanding: TextView = itemView.findViewById(R.id.txtOutstandingItem)
         var btnHapus: Button = itemView.findViewById(R.id.btnHapus)
-        var btnEdit: Button = itemView.findViewById(R.id.btnEdit) // Assuming you have an Edit button
+        var btnEdit: Button = itemView.findViewById(R.id.btnEdit)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataViewHolder {
@@ -34,9 +34,9 @@ class CollectionAdapter(
         val data = dataList[position]
 
         if (data != null) {
-            holder.txtNama.text = data.name
-            holder.txtAlamat.text = data.address
-            holder.txtOutstanding.text = data.outstanding
+            holder.txtNama.text = data.name ?: "N/A" // Use a default value if name is null
+            holder.txtAlamat.text = data.address ?: "N/A" // Use a default value if address is null
+            holder.txtOutstanding.text = data.outstanding ?: "0" // Use a default value if outstanding is null
 
             // Set click listener for delete button
             holder.btnHapus.setOnClickListener {
@@ -60,6 +60,14 @@ class CollectionAdapter(
         notifyDataSetChanged()
     }
 
+    fun filterData(query: String) {
+        val filteredData = dataList.filter {
+            it?.name?.contains(query, ignoreCase = true) == true ||
+                    it?.address?.contains(query, ignoreCase = true) == true
+        }
+        updateData(filteredData)
+    }
+
     fun removeItem(item: CollectItem) {
         val position = dataList.indexOfFirst { it?.id == item.id }
         if (position != -1) {
@@ -68,13 +76,12 @@ class CollectionAdapter(
         }
     }
 
-    // Show a confirmation dialog before deleting the item
     private fun showDeleteConfirmationDialog(context: Context, item: CollectItem) {
         AlertDialog.Builder(context)
             .setTitle("Konfirmasi Hapus")
             .setMessage("Apakah Anda yakin ingin menghapus item ini?")
             .setPositiveButton("Hapus") { _, _ -> onDeleteClick(item) }
-            .setNegativeButton("Batal", null) // Dismiss on cancel
+            .setNegativeButton("Batal", null)
             .show()
     }
 }

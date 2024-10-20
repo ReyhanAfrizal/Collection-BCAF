@@ -22,14 +22,17 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: CollectionViewModel by viewModels()
 
+    // Store the original data list for search functionality
+    private var originalDataList: List<CollectItem> = emptyList()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // Initialize views
         btnAdd = findViewById(R.id.btnTambahData)
-        btnSearch = findViewById(R.id.btnSearch) // Ensure button ID matches your layout
-        txtSearch = findViewById(R.id.txtSearch) // Ensure EditText ID matches your layout
+        btnSearch = findViewById(R.id.btnSearch)
+        txtSearch = findViewById(R.id.txtSearch)
         recyclerView = findViewById(R.id.lstCollection)
 
         // Set up RecyclerView
@@ -44,7 +47,9 @@ class MainActivity : AppCompatActivity() {
         viewModel.getDataDiri.observe(this) { response ->
             if (response != null) {
                 if (response.status == true && response.data?.collect != null) {
-                    adapter.updateData(response.data.collect)
+                    // Filter out null items and store in originalDataList
+                    originalDataList = response.data.collect.filterNotNull()
+                    adapter.updateData(originalDataList)
                 } else {
                     Toast.makeText(this, "Failed to load data", Toast.LENGTH_SHORT).show()
                 }
@@ -61,16 +66,21 @@ class MainActivity : AppCompatActivity() {
         btnSearch.setOnClickListener {
             val searchText = txtSearch.text.toString().trim()
             if (searchText.isNotEmpty()) {
-                // Perform search logic here (if needed)
-                Toast.makeText(this, "Searching for: $searchText", Toast.LENGTH_SHORT).show()
+                // Perform search logic
+                val filteredList = originalDataList.filter { item ->
+                    item.name?.contains(searchText, ignoreCase = true) == true ||
+                            item.address?.contains(searchText, ignoreCase = true) == true
+                }
+                adapter.updateData(filteredList)
             } else {
-                Toast.makeText(this, "Please enter a search term", Toast.LENGTH_SHORT).show()
+                // If search text is empty, show original data
+                adapter.updateData(originalDataList)
             }
         }
     }
 
     private fun deleteCollect(item: CollectItem) {
-        viewModel.deleteCollect((item.id?.toInt() ?: 0).toString()) // Ensure to convert to Int if ID is not null
+        viewModel.deleteCollect((item.id?.toInt() ?: 0).toString())
     }
 
     private fun editCollect(item: CollectItem?) {
