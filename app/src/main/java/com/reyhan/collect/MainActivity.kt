@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.reyhan.collect.adapter.CollectionAdapter
 import com.reyhan.collect.model.CollectItem
 import com.reyhan.collect.viewmodel.CollectionViewModel
@@ -16,8 +17,9 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var btnAdd: Button
+    private lateinit var btnAdd: FloatingActionButton
     private lateinit var btnSearch: Button
+    private lateinit var btnRefresh: Button
     private lateinit var txtSearch: EditText
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: CollectionAdapter
@@ -34,12 +36,16 @@ class MainActivity : AppCompatActivity() {
         // Initialize views
         btnAdd = findViewById(R.id.btnTambahData)
         btnSearch = findViewById(R.id.btnSearch)
+        btnRefresh = findViewById(R.id.btnRefresh)
         txtSearch = findViewById(R.id.txtSearch)
         recyclerView = findViewById(R.id.lstCollection)
 
         // Set up RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = CollectionAdapter(mutableListOf(), { item -> deleteCollect(item) }, { item -> editCollect(item) })
+        adapter = CollectionAdapter(
+            mutableListOf(),
+            { item -> deleteCollect(item) },
+            { item -> editCollect(item) })
         recyclerView.adapter = adapter
 
         // Load data on start
@@ -75,21 +81,34 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // Button click to search data
-        btnSearch.setOnClickListener {
-            val searchText = txtSearch.text.toString().trim()
-            if (searchText.isNotEmpty()) {
-                // Perform search logic
-                val filteredList = originalDataList.filter { item ->
-                    item.name?.contains(searchText, ignoreCase = true) == true ||
-                            item.address?.contains(searchText, ignoreCase = true) == true
-                }
-                adapter.updateData(filteredList)
-            } else {
-                // If search text is empty, show original data
-                adapter.updateData(originalDataList)
-            }
+        btnRefresh.setOnClickListener {
+            txtSearch.setText("")
+            searchData()
         }
+
+        btnSearch.setOnClickListener {
+            searchData()
+        }
+
+
+    }
+
+    private fun searchData() {
+        // Button click to search data
+        val searchText = txtSearch.text.toString().trim()
+        if (searchText.isNotEmpty()) {
+            // Perform search logic
+            val filteredList = originalDataList.filter { item ->
+                item.name?.contains(searchText, ignoreCase = true) == true ||
+                        item.address?.contains(searchText, ignoreCase = true) == true
+            }
+            adapter.updateData(filteredList)
+        } else {
+            // If search text is empty, show original data
+            adapter.updateData(originalDataList)
+        }
+
+
     }
 
     private fun deleteCollect(item: CollectItem?) {
