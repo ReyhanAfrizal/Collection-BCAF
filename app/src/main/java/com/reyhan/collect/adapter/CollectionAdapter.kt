@@ -68,19 +68,14 @@ class CollectionAdapter(
         updateData(filteredData)
     }
 
-    fun removeItem(item: CollectItem) {
-        val position = dataList.indexOfFirst { it?.id == item.id }
-        if (position != -1) {
-            dataList.removeAt(position)
-            notifyItemRemoved(position)
-        }
-    }
-
     private fun showDeleteConfirmationDialog(context: Context, item: CollectItem) {
         AlertDialog.Builder(context)
             .setTitle("Konfirmasi Hapus")
             .setMessage("Apakah Anda yakin ingin menghapus item ini?")
-            .setPositiveButton("Hapus") { _, _ -> onDeleteClick(item) }
+            .setPositiveButton("Hapus") { _, _ ->
+                // Call the deletion service here using the item ID
+                onDeleteClick(item)  // Make sure this is connected to your delete service
+            }
             .setNegativeButton("Batal", null)
             .show()
     }

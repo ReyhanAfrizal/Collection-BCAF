@@ -28,8 +28,10 @@ class AddActivity : AppCompatActivity() {
         txtInputOutstanding = findViewById(R.id.txtOutstanding)
         btnSendData = findViewById(R.id.btnKirimData)
 
+        // Set click listener to handle data submission
         btnSendData.setOnClickListener { sendData() }
 
+        // Observe post response from ViewModel
         viewModel.post.observe(this) { response ->
             if (response?.status == true) {
                 Toast.makeText(this, "Data sent successfully", Toast.LENGTH_SHORT).show()
@@ -41,6 +43,7 @@ class AddActivity : AppCompatActivity() {
     }
 
     private fun sendData() {
+        val id = itemId.toString().trim() // Use the item ID for editing
         val nama = txtInputNama.text.toString().trim()
         val alamat = txtInputAlamat.text.toString().trim()
         val outstanding = txtInputOutstanding.text.toString().trim()
@@ -53,7 +56,8 @@ class AddActivity : AppCompatActivity() {
 
             // Call the appropriate method in your ViewModel based on whether we are updating or creating
             if (itemId != null) {
-                viewModel.updateCollect(itemId!!.toString(), rbNama, rbAlamat, rbOutstanding)
+                val rbid = id.toRequestBody("text/plain".toMediaTypeOrNull())
+                viewModel.updateCollect(rbid, rbNama, rbAlamat, rbOutstanding)
             } else {
                 viewModel.postDataDiri(rbNama, rbAlamat, rbOutstanding)
             }

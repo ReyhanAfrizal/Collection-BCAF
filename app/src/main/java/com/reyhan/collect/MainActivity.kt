@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.reyhan.collect.adapter.CollectionAdapter
 import com.reyhan.collect.model.CollectItem
 import com.reyhan.collect.viewmodel.CollectionViewModel
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class MainActivity : AppCompatActivity() {
     private lateinit var btnAdd: Button
@@ -56,6 +58,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Observe deletion response
+        viewModel.post.observe(this) { response ->
+            if (response != null && response.status == true) {
+                // Refresh data after deletion
+                viewModel.getDataDiri() // Fetch updated list
+                Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Failed to delete item", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         // Button click to add data
         btnAdd.setOnClickListener {
             val intent = Intent(this, AddActivity::class.java)
@@ -80,7 +93,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun deleteCollect(item: CollectItem) {
-        viewModel.deleteCollect((item.id?.toInt() ?: 0).toString())
+        val idString = item.id?.toString() ?: run {
+            //showToast("Invalid item ID")
+            return // Exit the function if ID is null
+        }
+
+        val rbid = idString.toRequestBody("text/plain".toMediaTypeOrNull())
+        viewModel.deleteCollect(rbid)
     }
 
     private fun editCollect(item: CollectItem?) {
@@ -91,5 +110,10 @@ class MainActivity : AppCompatActivity() {
             putExtra("ITEM_OUTSTANDING", item?.outstanding)
         }
         startActivity(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.getDataDiri()
     }
 }

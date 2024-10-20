@@ -16,8 +16,8 @@ import retrofit2.Response
 class CollectionViewModel(application: Application) : AndroidViewModel(application) {
     private val _post = MutableLiveData<ResponseServices?>()
     private val _getDataDiri = MutableLiveData<ResponseCollection?>()
+    private val service = NetworkConfig().getServiceCollection() // Initialize the service once
 
-    // Expose LiveData to the UI
     val post: LiveData<ResponseServices?>
         get() = _post
 
@@ -25,89 +25,73 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
         get() = _getDataDiri
 
     init {
-        // Load initial data
-        getDataDiri()
+        getDataDiri() // Load initial data
     }
 
-    // Function to post new data
     fun postDataDiri(name: RequestBody, address: RequestBody, outstanding: RequestBody) {
-        NetworkConfig().getServiceCollection().addCollect(name, address, outstanding).enqueue(object :
-            Callback<ResponseServices> {
+        service.addCollect(name, address, outstanding).enqueue(object : Callback<ResponseServices> {
             override fun onResponse(call: Call<ResponseServices>, response: Response<ResponseServices>) {
                 if (response.isSuccessful) {
                     _post.postValue(response.body())
                     getDataDiri() // Refresh the list after posting
                 } else {
-                    showToast("Failed to upload data")
+                    handleError("Failed to upload data")
                 }
             }
 
             override fun onFailure(call: Call<ResponseServices>, t: Throwable) {
-                showToast("Error: ${t.message}")
+                handleError("Error: ${t.message}")
             }
         })
     }
 
-    // Function to fetch data
     fun getDataDiri() {
-        NetworkConfig().getServiceCollection().getAllCollect()
-            .enqueue(object : Callback<ResponseCollection> {
-                override fun onResponse(call: Call<ResponseCollection>, response: Response<ResponseCollection>) {
-                    if (response.isSuccessful) {
-                        _getDataDiri.postValue(response.body())
-                    } else {
-                        showToast("Failed to fetch data")
-                    }
-                }
+        service.getAllCollect().enqueue(object : Callback<ResponseCollection> {
+            override fun onResponse(call: Call<ResponseCollection>, response: Response<ResponseCollection>) {
+                _getDataDiri.postValue(response.body())
+            }
 
-                override fun onFailure(call: Call<ResponseCollection>, t: Throwable) {
-                    showToast("Failed to fetch data: ${t.message}")
-                }
-            })
+            override fun onFailure(call: Call<ResponseCollection>, t: Throwable) {
+                handleError("Failed to fetch data: ${t.message}")
+            }
+        })
     }
 
-    // Function to delete an item
-    fun deleteCollect(id: String?) {
-        id?.let {
-            NetworkConfig().getServiceCollection().deleteCollect(it)
-                .enqueue(object : Callback<ResponseServices> {
-                    override fun onResponse(call: Call<ResponseServices>, response: Response<ResponseServices>) {
-                        if (response.isSuccessful) {
-                            showToast("Item deleted successfully")
-                            getDataDiri() // Refresh the list after deletion
-                        } else {
-                            showToast("Failed to delete item")
-                        }
-                    }
-
-                    override fun onFailure(call: Call<ResponseServices>, t: Throwable) {
-                        showToast("Error: ${t.message}")
-                    }
-                })
-        }
-    }
-
-    // Function to update an item
-    fun updateCollect(id: String, name: RequestBody, address: RequestBody, outstanding: RequestBody) {
-        NetworkConfig().getServiceCollection().updateCollect(id, name, address, outstanding).enqueue(object :
-            Callback<ResponseServices> {
+    fun deleteCollect(id: RequestBody) {
+        service.deleteCollect(id).enqueue(object : Callback<ResponseServices> {
             override fun onResponse(call: Call<ResponseServices>, response: Response<ResponseServices>) {
                 if (response.isSuccessful) {
                     _post.postValue(response.body())
                     getDataDiri() // Refresh the list after updating
                 } else {
-                    showToast("Failed to update item")
+                    handleError("Failed to update item")
                 }
             }
 
             override fun onFailure(call: Call<ResponseServices>, t: Throwable) {
-                showToast("Error: ${t.message}")
+                handleError("Error: ${t.message}")
             }
         })
     }
 
-    // Helper function to show Toast messages
-    private fun showToast(message: String) {
+    fun updateCollect(id: RequestBody, name: RequestBody, address: RequestBody, outstanding: RequestBody) {
+        service.updateCollect(id, name, address, outstanding).enqueue(object : Callback<ResponseServices> {
+            override fun onResponse(call: Call<ResponseServices>, response: Response<ResponseServices>) {
+                if (response.isSuccessful) {
+                    _post.postValue(response.body())
+                    getDataDiri() // Refresh the list after updating
+                } else {
+                    handleError("Failed to update item")
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseServices>, t: Throwable) {
+                handleError("Error: ${t.message}")
+            }
+        })
+    }
+
+    private fun handleError(message: String) {
         Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT).show()
     }
 }
