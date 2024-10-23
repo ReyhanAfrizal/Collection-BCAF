@@ -26,6 +26,10 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: CollectionViewModel by viewModels()
 
+    private var currentPage = 10
+    private var isLoading = false
+    private var isLastPage = false
+
     // Store the original data list for search functionality
     private var originalDataList: List<CollectItem> = emptyList()
 
@@ -49,7 +53,7 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
 
         // Load data on start
-        viewModel.getDataDiri()
+        viewModel.getDataDiri(currentPage)
 
         // Observe changes in data
         viewModel.getDataDiri.observe(this) { response ->
@@ -64,11 +68,21 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                if (!isLoading && !isLastPage && layoutManager.findLastCompletelyVisibleItemPosition() == adapter.itemCount - 1) {
+                    loadData(currentPage) // Load more data
+                }
+            }
+        })
+
         // Observe deletion response
         viewModel.post.observe(this) { response ->
             if (response != null && response.status == true) {
                 // Refresh data after deletion
-                viewModel.getDataDiri() // Fetch updated list
+                viewModel.getDataDiri(currentPage) // Fetch updated list
                 Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(this, "Failed to delete item", Toast.LENGTH_SHORT).show()
@@ -83,14 +97,18 @@ class MainActivity : AppCompatActivity() {
 
         btnRefresh.setOnClickListener {
             txtSearch.setText("")
-            searchData()
+            viewModel.getDataDiri(0)
         }
 
         btnSearch.setOnClickListener {
             searchData()
         }
+    }
 
-
+    private fun loadData(page: Int): Int {
+        // Calculate the start index for pagination
+        viewModel.getDataDiri(page+10) // Default page size is 10
+        return currentPage
     }
 
     private fun searchData() {
@@ -130,6 +148,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.getDataDiri()
+        viewModel.getDataDiri(currentPage)
     }
 }

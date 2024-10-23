@@ -18,6 +18,12 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
     private val _getDataDiri = MutableLiveData<ResponseCollection?>()
     private val service = NetworkConfig().getServiceCollection() // Initialize the service once
 
+    private var currentPage = 0
+
+    // LiveData to hold paginated data
+    private val _paginatedData = MutableLiveData<ResponseCollection>()
+    val paginatedData: LiveData<ResponseCollection> get() = _paginatedData
+
     val post: LiveData<ResponseServices?>
         get() = _post
 
@@ -25,7 +31,7 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
         get() = _getDataDiri
 
     init {
-        getDataDiri() // Load initial data
+        getDataDiri(currentPage) // Load initial data
     }
 
     fun postDataDiri(name: RequestBody, address: RequestBody, outstanding: RequestBody) {
@@ -33,7 +39,7 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
             override fun onResponse(call: Call<ResponseServices>, response: Response<ResponseServices>) {
                 if (response.isSuccessful) {
                     _post.postValue(response.body())
-                    getDataDiri() // Refresh the list after posting
+                    getDataDiri(currentPage) // Refresh the list after posting
                 } else {
                     handleError("Failed to upload data")
                 }
@@ -45,8 +51,8 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
         })
     }
 
-    fun getDataDiri() {
-        service.getAllCollect().enqueue(object : Callback<ResponseCollection> {
+    fun getDataDiri(currentPage:Int) {
+        service.getAllCollect(currentPage).enqueue(object : Callback<ResponseCollection> {
             override fun onResponse(call: Call<ResponseCollection>, response: Response<ResponseCollection>) {
                 _getDataDiri.postValue(response.body())
             }
@@ -62,7 +68,7 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
             override fun onResponse(call: Call<ResponseServices>, response: Response<ResponseServices>) {
                 if (response.isSuccessful) {
                     _post.postValue(response.body())
-                    getDataDiri() // Refresh the list after updating
+                    getDataDiri(currentPage) // Refresh the list after updating
                 } else {
                     handleError("Failed to update item")
                 }
@@ -79,7 +85,7 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
             override fun onResponse(call: Call<ResponseServices>, response: Response<ResponseServices>) {
                 if (response.isSuccessful) {
                     _post.postValue(response.body())
-                    getDataDiri() // Refresh the list after updating
+                    getDataDiri(currentPage) // Refresh the list after updating
                 } else {
                     handleError("Failed to update item")
                 }
